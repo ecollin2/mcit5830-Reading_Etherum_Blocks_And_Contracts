@@ -57,8 +57,21 @@ def is_ordered_block(w3, block_num):
 	ordered = False
 
 	# TODO YOUR CODE HERE
+	base_fee_per_gas = block.get("baseFeePerGas", 0)
 
-	return ordered
+	fee_list = []
+
+	for transaction in block.transactions: 
+		if transaction.type == 0: 
+			priority_fee = transaction.gasPrice - base_fee_per_gas 
+		elif transaction.type == 2: 
+			priority_fee = min(getattr(transaction, "maxPriorityFeePerGas", 0), getattr(transaction, "maxFeePerGas", 0) - base_fee_per_gas)
+		else: 
+			priority_fee = transaction.gasPrice 
+		
+		fee_list.append(priority_fee)
+
+	return all(fee_list[i] >= fee_list[i+1] for i in range(len(fee_list)-1))
 
 
 def get_contract_values(contract, admin_address, owner_address):
